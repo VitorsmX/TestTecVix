@@ -70,18 +70,25 @@ model vM {
 }
 
 model user {
-  idUser        String    @id @default(uuid())
-  username      String
-  password      String
-  email         String
-  profileImgUrl String?
-  role          ERole     @default(member)
-  idBrandMaster Int?
-  isActive      Boolean?  @default(true)
-  lastLoginDate DateTime? @db.DateTime(0)
-  createdAt     DateTime? @default(now()) @db.DateTime(0)
-  updatedAt     DateTime? @default(now()) @db.DateTime(0)
-  deletedAt     DateTime? @db.DateTime(0)
+  idUser           String    @id @default(uuid())
+  username         String
+  fullName         String?
+  userPhoneNumber  String?
+  department       String?
+  field            String?
+  contractDate     DateTime?
+
+  password         String
+  email            String
+  profileImgUrl    String?
+
+  role             ERole     @default(member)
+  idBrandMaster    Int?
+  isActive         Boolean?  @default(true)
+  lastLoginDate    DateTime? @db.DateTime(0)
+  createdAt        DateTime? @default(now()) @db.DateTime(0)
+  updatedAt        DateTime? @default(now()) @db.DateTime(0)
+  deletedAt        DateTime? @db.DateTime(0)
 
   brandMaster brandMaster? @relation(fields: [idBrandMaster], references: [idBrandMaster])
 

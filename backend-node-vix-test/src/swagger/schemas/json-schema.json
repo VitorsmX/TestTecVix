@@ -289,6 +289,37 @@
         "username": {
           "type": "string"
         },
+        "fullName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "userPhoneNumber": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "department": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "field": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "contractDate": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
         "password": {
           "type": "string"
         },

@@ -12,12 +12,16 @@ export class BucketController {
     res: Response,
   ) {
     const { objectName } = req.params;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-expect-error
     const filePath = path.join(__dirname, "..", "..", "uploads", objectName);
     return res.sendFile(filePath);
   }
 
   async getFileByObjectName(req: CustomRequest<unknown>, res: Response) {
     const { objectName } = req.params;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-expect-error
     const response = await this.bucketService.renewPresignedUrl(objectName);
     return res.status(STATUS_CODE.OK).json({ url: response });
   }

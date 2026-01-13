@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { UserController } from "../controllers/UserController";
 import { API_VERSION, ROOT_PATH } from "../constants/basePathRoutes";
-import { authUser } from "../auth/authUser";
 
 const BASE_PATH = API_VERSION.V1 + ROOT_PATH.USER;
 
@@ -13,7 +12,7 @@ export const makeUserController = () => {
 
 const userController = makeUserController();
 
-userRoutes.post(`${BASE_PATH}/login`, authUser, async (req, res) => {
+userRoutes.post(`${BASE_PATH}/login`, async (req, res) => {
   await userController.login(req, res);
 });
 userRoutes.post(`${BASE_PATH}/`, async (req, res) => {

@@ -9,7 +9,9 @@ export class BrandMasterController {
   private brandMasterService = new BrandMasterService();
 
   async getSelf(req: CustomRequest<unknown>, res: Response) {
-    return res.status(STATUS_CODE.OK).json(null);
+    const { domain } = req.params;
+    const result = await this.brandMasterService.getSelf(String(domain));
+    return res.status(STATUS_CODE.OK).json(result);
   }
 
   async getById(req: CustomRequest<unknown>, res: Response) {

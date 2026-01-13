@@ -1,74 +1,102 @@
-import bcrypt from "bcrypt";
 import { AppError } from "../errors/AppError";
-import { STATUS_CODE } from "../constants/statusCode";
 import { ERROR_MESSAGE } from "../constants/erroMessages";
-import { UserModel } from "../models/UserModel";
+import { STATUS_CODE } from "../constants/statusCode";
+import bcrypt from "bcryptjs";
+import { TUserCreated } from "../types/validations/User/createUser";
 import { genToken } from "../utils/jwt";
-
-interface ILoginInput {
-  email?: string;
-  username?: string;
-  password: string;
-}
+import { UserModel } from "../models/UserModel";
+import { userUpdatedSchema } from "../types/validations/User/updateUser";
 
 export class UserService {
+  constructor() {}
+
   private userModel = new UserModel();
 
-  async login(data: ILoginInput) {
-    if (!data.email && !data.username) {
-      throw new AppError(
-        ERROR_MESSAGE.INVALID_CREDENTIALS,
-        STATUS_CODE.BAD_REQUEST,
-      );
+  async getUserById(idUser: string) {
+    const user = await this.userModel.findById(idUser);
+    if (!user) {
+      throw new AppError(ERROR_MESSAGE.UNAUTHORIZED, STATUS_CODE.UNAUTHORIZED);
     }
+    return user;
+  }
 
-    const user = await this.userModel.findByLogin({
-      email: data.email,
-      username: data.username,
-    });
+  async getNewToken(idUser: string) {
+    const user = await this.userModel.findById(idUser);
 
     if (!user) {
-      throw new AppError(
-        ERROR_MESSAGE.INVALID_CREDENTIALS,
-        STATUS_CODE.UNAUTHORIZED,
-      );
+      throw new AppError(ERROR_MESSAGE.UNAUTHORIZED, STATUS_CODE.UNAUTHORIZED);
     }
 
-    const passwordMatch = await bcrypt.compare(data.password, user.password);
-
-    if (!passwordMatch) {
-      throw new AppError(
-        ERROR_MESSAGE.INVALID_CREDENTIALS,
-        STATUS_CODE.UNAUTHORIZED,
-      );
+    if (!user.isActive) {
+      throw new AppError(ERROR_MESSAGE.UNAUTHORIZED, STATUS_CODE.FORBIDDEN);
     }
 
-    await this.userModel.updateLastLogin(user.idUser);
+    const token = genToken({ id: user.idUser, role: user.role });
 
-    const token = genToken({
-      sub: user.idUser,
-    });
+    return { token };
+  }
+
+  async login(email: string, password: string) {
+    const user = await this.userModel.findByEmail(email);
+
+    if (!user) {
+      throw new AppError(ERROR_MESSAGE.UNAUTHORIZED, STATUS_CODE.UNAUTHORIZED);
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+
+    if (!match) {
+      throw new AppError(ERROR_MESSAGE.UNAUTHORIZED, STATUS_CODE.UNAUTHORIZED);
+    }
+
+    const token = genToken({ id: user.idUser, role: user.role });
 
     return {
       token,
-      user: {
-        idUser: user.idUser,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        idBrandMaster: user.idBrandMaster,
-        isVituaxUser: !user.idBrandMaster,
-        brandMaster: user.brandMaster,
-      },
+      user: user,
     };
   }
 
-  async register(data: {
-    username: string;
-    email: string;
-    password: string;
-    idBrandMaster?: number;
-  }) {
-    return this.userModel.createUser(data);
+  async register(data: TUserCreated) {
+    const exists = await this.userModel.findByEmail(data.email);
+
+    if (exists) {
+      throw new AppError(
+        ERROR_MESSAGE.USER_ALREADY_EXISTS,
+        STATUS_CODE.CONFLICT,
+      );
+    }
+
+    const hashed = await bcrypt.hash(data.password, 10);
+
+    return await this.userModel.createUser({
+      ...data,
+      isActive: true,
+      password: hashed,
+    });
+  }
+
+  async updateUser(idUser: string, data: unknown) {
+    const validateDataSchema = userUpdatedSchema.parse(data);
+    const oldUser = await this.getUserById(idUser);
+
+    if (!oldUser) {
+      throw new AppError(ERROR_MESSAGE.NOT_FOUND, STATUS_CODE.NOT_FOUND);
+    }
+
+    const updatedVM = await this.userModel.updateUser(
+      idUser,
+      validateDataSchema,
+    );
+    return updatedVM;
+  }
+
+  async deleteUser(idUser: string) {
+    const oldUser = await this.getUserById(idUser);
+    if (!oldUser) {
+      throw new AppError(ERROR_MESSAGE.NOT_FOUND, STATUS_CODE.NOT_FOUND);
+    }
+    const deletedVm = await this.userModel.deleteUser(idUser);
+    return deletedVm;
   }
 }

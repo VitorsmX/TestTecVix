@@ -1,53 +1,35 @@
 import { prisma } from "../database/client";
-import bcrypt from "bcrypt";
-
-interface ILoginData {
-  email?: string;
-  username?: string;
-  password: string;
-}
-
-interface ICreateUser {
-  username: string;
-  email: string;
-  password: string;
-  idBrandMaster?: number;
-}
+import { TUserCreated } from "../types/validations/User/createUser";
+import { TUserUpdated } from "../types/validations/User/updateUser";
 
 export class UserModel {
-  async findByLogin({ email, username }: Omit<ILoginData, "password">) {
+  async findByEmail(email: string) {
     return prisma.user.findFirst({
-      where: {
-        deletedAt: null,
-        isActive: true,
-        ...(email && { email }),
-        ...(username && { username }),
-      },
-      include: {
-        brandMaster: true,
-      },
+      where: { email },
     });
   }
 
-  async createUser(data: ICreateUser) {
-    const hashedPassword = await bcrypt.hash(data.password, 10);
-
-    return prisma.user.create({
-      data: {
-        username: data.username,
-        email: data.email,
-        password: hashedPassword,
-        idBrandMaster: data.idBrandMaster ?? null,
-      },
-    });
-  }
-
-  async updateLastLogin(idUser: string) {
-    return prisma.user.update({
+  async findById(idUser: string) {
+    return prisma.user.findUnique({
       where: { idUser },
-      data: {
-        lastLoginDate: new Date(),
-      },
+    });
+  }
+
+  async createUser(data: TUserCreated) {
+    return prisma.user.create({ data });
+  }
+
+  async updateUser(idUser: string, data: TUserUpdated) {
+    return await prisma.user.update({
+      where: { idUser },
+      data: { ...data, updatedAt: new Date() },
+    });
+  }
+
+  async deleteUser(idUser: string) {
+    return await prisma.user.update({
+      where: { idUser },
+      data: { isActive: false, updatedAt: new Date(), deletedAt: new Date() },
     });
   }
 }

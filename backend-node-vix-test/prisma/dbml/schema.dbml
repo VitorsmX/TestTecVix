@@ -56,6 +56,11 @@ Table vM {
 Table user {
   idUser String [pk]
   username String [not null]
+  fullName String
+  userPhoneNumber String
+  department String
+  field String
+  contractDate DateTime
   password String [not null]
   email String [not null]
   profileImgUrl String
