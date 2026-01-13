@@ -16,6 +16,7 @@ import { ModalDeleteVMsFromMSP } from "./ModalDeleteVMsFromMSP";
 import { useBrandMasterResources } from "../../hooks/useBrandMasterResources";
 import { AbsoluteBackDrop } from "../../components/AbsoluteBackDrop";
 import { useVmResource } from "../../hooks/useVmResource";
+import { MspForm } from "./MspForm";
 
 export const MSPRegisterPage = () => {
   const { theme, mode } = useZTheme();
@@ -158,6 +159,7 @@ export const MSPRegisterPage = () => {
                 </TextRob16Font1S>
                 <MspTableFilters />
               </Box>
+              <MspForm />
               <MspTable />
             </Stack>
           </Stack>
