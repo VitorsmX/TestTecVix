@@ -1,10 +1,10 @@
 import { user } from "@prisma/client";
 import { VMModel } from "../models/VMModel";
-import { vMCreatedSchema } from "../types/validations/VM/createVM";
+import { TVMCreate, vMCreatedSchema } from "../types/validations/VM/createVM";
 import { AppError } from "../errors/AppError";
 import { ERROR_MESSAGE } from "../constants/erroMessages";
 import { STATUS_CODE } from "../constants/statusCode";
-import { vMUpdatedSchema } from "../types/validations/VM/updateVM";
+import { TVMUpdate, vMUpdatedSchema } from "../types/validations/VM/updateVM";
 import { vmListAllSchema } from "../types/validations/VM/vmListAll";
 import { decrypt, encrypt } from "../utils/crypto";
 
@@ -37,7 +37,11 @@ export class VMService {
     };
   }
 
-  async createNewVM(data: unknown) {
+  async createNewVM(data: TVMCreate, user: user) {
+    if (user.role !== "admin" && user.role !== "manager") {
+      throw new AppError(ERROR_MESSAGE.UNAUTHORIZED, STATUS_CODE.UNAUTHORIZED);
+    }
+
     const validateData = vMCreatedSchema.parse(data);
 
     const hashed = encrypt(validateData.pass || "");
@@ -56,7 +60,10 @@ export class VMService {
     return createdVM;
   }
 
-  async updateVM(idVM: number, data: unknown) {
+  async updateVM(idVM: number, data: TVMUpdate, user: user) {
+    if (user.role !== "admin" && user.role !== "manager") {
+      throw new AppError(ERROR_MESSAGE.UNAUTHORIZED, STATUS_CODE.UNAUTHORIZED);
+    }
     const validateDataSchema = vMUpdatedSchema.parse(data);
     const oldVM = await this.getById(idVM);
 
@@ -74,7 +81,10 @@ export class VMService {
     });
   }
 
-  async deleteVM(idVM: number) {
+  async deleteVM(idVM: number, user: user) {
+    if (user.role !== "admin") {
+      throw new AppError(ERROR_MESSAGE.UNAUTHORIZED, STATUS_CODE.UNAUTHORIZED);
+    }
     const oldVM = await this.getById(idVM);
     if (!oldVM) {
       throw new AppError(ERROR_MESSAGE.NOT_FOUND, STATUS_CODE.NOT_FOUND);

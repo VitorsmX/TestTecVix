@@ -79,7 +79,7 @@ export const FormEditVM = ({ onClose }: IProps) => {
     setVmvCpu(currentVM.vCPU);
     setVmMemory(currentVM.ram);
     setVmDisk(currentVM.disk);
-    // setVmStorageType(null);
+    // setVmStorageType(currentVM);
     // setVmLocalization(null);
     setHasBackup(currentVM.hasBackup);
     setStatus(currentVM.status);
