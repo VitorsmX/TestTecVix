@@ -52,43 +52,45 @@ model brandMaster {
 }
 
 model vM {
-  idVM          Int          @id @default(autoincrement())
-  vmName        String?
-  vCPU          Int
-  ram           Int
-  disk          Int
-  hasBackup     Boolean?     @default(false)
-  idBrandMaster Int?
-  status        EVMStatus?
-  createdAt     DateTime?    @default(now()) @db.DateTime(0)
-  updatedAt     DateTime?    @default(now()) @db.DateTime(0)
-  deletedAt     DateTime?    @db.DateTime(0)
-  os            String?
-  brandMaster   brandMaster? @relation(fields: [idBrandMaster], references: [idBrandMaster])
+  idVM           Int           @id @default(autoincrement())
+  vmName         String?
+  vCPU           Int
+  ram            Int
+  disk           Int
+  pass           String?
+  vmLocalization ETaskLocation @default(bre_barueri)
+  hasBackup      Boolean?      @default(false)
+  idBrandMaster  Int?
+  status         EVMStatus?
+  createdAt      DateTime?     @default(now()) @db.DateTime(0)
+  updatedAt      DateTime?     @default(now()) @db.DateTime(0)
+  deletedAt      DateTime?     @db.DateTime(0)
+  os             String?
+  brandMaster    brandMaster?  @relation(fields: [idBrandMaster], references: [idBrandMaster])
 
   @@index([idBrandMaster], map: "vM_idBrandMaster_fkey")
 }
 
 model user {
-  idUser           String    @id @default(uuid())
-  username         String
-  fullName         String?
-  userPhoneNumber  String?
-  department       String?
-  field            String?
-  contractDate     DateTime?
+  idUser          String    @id @default(uuid())
+  username        String
+  fullName        String?
+  userPhoneNumber String?
+  department      String?
+  field           String?
+  contractDate    DateTime?
 
-  password         String
-  email            String
-  profileImgUrl    String?
+  password      String
+  email         String
+  profileImgUrl String?
 
-  role             ERole     @default(member)
-  idBrandMaster    Int?
-  isActive         Boolean?  @default(true)
-  lastLoginDate    DateTime? @db.DateTime(0)
-  createdAt        DateTime? @default(now()) @db.DateTime(0)
-  updatedAt        DateTime? @default(now()) @db.DateTime(0)
-  deletedAt        DateTime? @db.DateTime(0)
+  role          ERole     @default(member)
+  idBrandMaster Int?
+  isActive      Boolean?  @default(true)
+  lastLoginDate DateTime? @db.DateTime(0)
+  createdAt     DateTime? @default(now()) @db.DateTime(0)
+  updatedAt     DateTime? @default(now()) @db.DateTime(0)
+  deletedAt     DateTime? @db.DateTime(0)
 
   brandMaster brandMaster? @relation(fields: [idBrandMaster], references: [idBrandMaster])
 
@@ -99,6 +101,11 @@ enum EVMStatus {
   RUNNING
   STOPPED
   PAUSED
+}
+
+enum ETaskLocation {
+  bre_barueri
+  usa_miami
 }
 
 enum ERole {

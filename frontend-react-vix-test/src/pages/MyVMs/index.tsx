@@ -42,12 +42,17 @@ export const MyVMsPage = () => {
   const { socketRef } = useZGlobalVar();
 
   const handlerFetchVMList = async (page: number = 0) => {
+    const brandMasterFilter = () => {
+      if (onlyMyVMs) return idBrand;
+      if (selectedMSP?.idBrandMaster) return selectedMSP.idBrandMaster;
+      return undefined;
+    };
     const { totalCount, vmList } = await fetchMyVmsList({
       search,
       page: page || currentPage - 1 || 0,
       orderBy: orderBy ? `${orderBy}:${order}` : undefined,
       limit,
-      idBrandMaster: idBrand,
+      idBrandMaster: brandMasterFilter(),
       status,
     });
     setVMList(vmList);
@@ -64,12 +69,14 @@ export const MyVMsPage = () => {
     if (isLoading) return;
     setCurrentPage(1);
     handlerFetchVMList();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, order, orderBy, selectedMSP, status, onlyMyVMs]);
 
   useEffect(() => {
     if (isOpenSideBar) return;
     if (isLoading) return;
     handlerFetchVMList(currentPage - 1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
   useEffect(() => {
@@ -81,6 +88,7 @@ export const MyVMsPage = () => {
     if (vmToUpdate) {
       handlerFetchVMList();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [updateThisVm, isOpenSideBar, isLoading]);
 
   useEffect(() => {
@@ -91,6 +99,7 @@ export const MyVMsPage = () => {
     return () => {
       socketRef.off("updateTask");
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     socketRef,
     currentPage,

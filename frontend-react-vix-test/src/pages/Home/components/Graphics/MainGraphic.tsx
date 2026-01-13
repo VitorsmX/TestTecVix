@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   XAxis,
   YAxis,
@@ -15,11 +15,33 @@ import { useZTheme } from "../../../../stores/useZTheme";
 import { useTranslation } from "react-i18next";
 import { useZGlobalVar } from "../../../../stores/useZGlobalVar";
 import { IFormatData } from "../../../../types/socketType";
+import { EmptyFeedBack } from "./EmptyFeedBack";
+import { useSocket } from "../../../../hooks/useSocket";
 
 export const MainGraphic = () => {
-  const [chartData] = useState<IFormatData[]>([]);
+  const [chartData, setChartData] = useState<IFormatData[]>([]);
   const { theme, mode } = useZTheme();
   const { t } = useTranslation();
+  const { currentIdVM } = useZGlobalVar();
+  const { metrics } = useSocket(currentIdVM);
+
+  useEffect(() => {
+    setChartData([]);
+  }, [currentIdVM]);
+
+  useEffect(() => {
+    if (!metrics) return;
+
+    setChartData((prev) => {
+      const next = [...prev, metrics.cpu];
+
+      if (next.length > 30) {
+        return next.slice(next.length - 30);
+      }
+
+      return next;
+    });
+  }, [metrics]);
 
   const lastCpuUsage = chartData[chartData.length - 1]?.value || 0;
 
@@ -32,7 +54,7 @@ export const MainGraphic = () => {
 
   const { currentVMName: vmName } = useZGlobalVar();
 
-  // if (!chartData.length) return <EmptyFeedBack />;
+  if (!chartData.length) return <EmptyFeedBack />;
 
   return (
     <Stack

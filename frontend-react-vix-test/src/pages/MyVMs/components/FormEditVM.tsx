@@ -113,6 +113,7 @@ export const FormEditVM = ({ onClose }: IProps) => {
         hasBackup: hasBackup,
         os: String(vmSO?.value) || "",
         pass: vmPassword,
+        vmLocalization: vmLocalization.value
       },
       currentVM.idVM,
     );
@@ -203,12 +204,11 @@ export const FormEditVM = ({ onClose }: IProps) => {
             }}
           >
             <LabelInputVM
-              onChange={() => {}}
+              onChange={setVmPassword}
               value={vmPassword}
               label={t("createVm.password")}
               placeholder={t("createVm.userPassword")}
               type="password"
-              disabled
             />
             <PasswordValidations vmPassword={vmPassword} />
           </Stack>
@@ -474,7 +474,6 @@ export const FormEditVM = ({ onClose }: IProps) => {
             </TextRob16Font1S>
           </Btn>
           <Btn
-            disabled={disabledBtn}
             onClick={() => setOpenDeleteModal(true)}
             sx={{
               padding: "9px 24px",

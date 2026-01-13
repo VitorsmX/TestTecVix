@@ -25,7 +25,7 @@ import { ChartBarIcon } from "../../../../icons/ChartIcon";
 import { TextRob14Font1Xs } from "../../../../components/Text1Xs";
 import { TerminalIcon } from "../../../../icons/TerminalIcon";
 import { MonitorIcon } from "../../../../icons/MonitorIcon";
-import { IVMTask, taskMock } from "../../../../types/VMTypes";
+import { IVMTask, taskMock, TStatus } from "../../../../types/VMTypes";
 
 export interface IVmCardProps {
   vmId: number;
@@ -78,6 +78,7 @@ export const VmCard = ({
     updateNameVm,
     updateDiskSizeVm,
     getVMById: getVMByIdResource,
+    updateVMStatus,
     isLoading,
     getOS,
   } = useVmResource();
@@ -109,7 +110,10 @@ export const VmCard = ({
   const handleConfirm = async () => {
     if (statusState !== preStatusState) {
       setPreStatusState(statusState);
-
+      await updateVMStatus({
+        idVM: vmId,
+        status: statusState as "RUNNING" | "STOPPED" | "PAUSED",
+      });
       await getVMById();
     }
     setShowConfirmation(false);

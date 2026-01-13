@@ -65,6 +65,7 @@ export const Header = () => {
         })),
       );
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSearch = (value: string) => {
@@ -200,10 +201,10 @@ export const Header = () => {
           value={
             selectedMSP
               ? {
-                id: selectedMSP.idBrandMaster,
-                label: selectedMSP.brandName,
-                value: selectedMSP,
-              }
+                  id: selectedMSP.idBrandMaster,
+                  label: selectedMSP.brandName,
+                  value: selectedMSP,
+                }
               : null
           }
           sxContainer={{

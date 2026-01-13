@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Line,
   XAxis,
@@ -17,19 +17,40 @@ import { useTranslation } from "react-i18next";
 
 import { useZGlobalVar } from "../../../../stores/useZGlobalVar";
 import { IFormatData } from "../../../../types/socketType";
+import { EmptyFeedBack } from "./EmptyFeedBack";
+import { useSocket } from "../../../../hooks/useSocket";
 
 export const BottomGraphic = () => {
-  const [chartData] = useState<IFormatData[]>([]);
   const { theme, mode } = useZTheme();
   const { t } = useTranslation();
+  const [chartData, setChartData] = useState<IFormatData[]>([]);
+  const { currentVMName: vmName, currentIdVM } = useZGlobalVar();
+  const { metrics } = useSocket(currentIdVM);
+
+  useEffect(() => {
+    setChartData([]);
+  }, [currentIdVM]);
+
+  useEffect(() => {
+    if (!metrics) return;
+
+    setChartData((prev) => {
+      const next = [...prev, metrics.memory];
+
+      if (next.length > 30) {
+        return next.slice(next.length - 30);
+      }
+
+      return next;
+    });
+  }, [metrics]);
 
   const lastMemoryData =
     Number(chartData[chartData.length - 1]?.value.toFixed(2)) || 0;
 
   const valueColor = lastMemoryData < 80 ? theme[mode].ok : theme[mode].danger;
-  const { currentVMName: vmName } = useZGlobalVar();
 
-  // if (!chartData.length) return <EmptyFeedBack />;
+  if (!chartData.length) return <EmptyFeedBack />;
 
   return (
     <Stack

@@ -18,8 +18,9 @@ import { PasswordValidations } from "./PasswordValidations";
 import { useZVMSugestion } from "../../../stores/useZVMSugestion";
 import { ENetworkType } from "../../../types/VMTypes";
 import { AbsoluteBackDrop } from "../../../components/AbsoluteBackDrop";
-import { BTNISOsSection } from "./BTNISOsSection";
 import { useZVM } from "../../../stores/useZVM";
+import { useZUserProfile } from "../../../stores/useZUserProfile";
+
 
 export const FormVM = () => {
   const { t } = useTranslation(); // createVm
@@ -46,6 +47,8 @@ export const FormVM = () => {
     openConfirm,
     setOpenConfirm,
   } = useZVM();
+
+  const { username, idBrand } = useZUserProfile();
 
   const {
     createVm,
@@ -107,8 +110,22 @@ export const FormVM = () => {
       hasBackup: hasBackup,
       os: String(vmSO?.value) || "",
       pass: vmPassword,
+      idBrandMaster: idBrand,
+      vmLocalization: vmLocalization.value,
     });
   };
+
+  const OS_OPTIONS = [
+    { label: "Ubuntu 22.04 LTS", value: "ubuntu-22" },
+    { label: "Ubuntu 20.04 LTS", value: "ubuntu-20" },
+    { label: "Debian 12", value: "debian-12" },
+    { label: "Debian 11", value: "debian-11" },
+    { label: "CentOS 7", value: "centos-7" },
+    { label: "Rocky Linux 9", value: "rocky-9" },
+    { label: "AlmaLinux 9", value: "alma-9" },
+    { label: "Windows Server 2022", value: "windows-2022" },
+    { label: "Windows Server 2019", value: "windows-2019" },
+  ];
 
   const disabledBtn =
     !vmName ||
@@ -129,6 +146,7 @@ export const FormVM = () => {
     if (sugestionVCPU) setVmvCpu(sugestionVCPU);
     if (sugestionRAM) setVmMemory(sugestionRAM);
     if (sugestionDisk) setVmDisk(sugestionDisk);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sugestionOS, sugestionVCPU, sugestionRAM, sugestionDisk]);
 
   useEffect(() => {
@@ -138,6 +156,7 @@ export const FormVM = () => {
     return () => {
       resetAll();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -175,7 +194,7 @@ export const FormVM = () => {
           <LabelInputVM
             disabled
             onChange={() => {}}
-            value={"root"}
+            value={username}
             label={t("createVm.userVM")}
             placeholder={t("createVm.name")}
           />
@@ -225,7 +244,13 @@ export const FormVM = () => {
             value={vmLocalization}
             onChange={setVmLocalization}
           />
-          <BTNISOsSection vmNameLabel={vmSO?.label} />
+          <DropDowText
+            label={t("createVm.dataCenterLocation")}
+            data={OS_OPTIONS}
+            value={vmSO}
+            onChange={setVmSO}
+          />
+          {/* <BTNISOsSection vmNameLabel={vmSO?.label} /> */}
         </Stack>
         {/* Sliders */}
         <Stack

@@ -1,16 +1,38 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Label } from "recharts";
 import { Stack, Typography } from "@mui/material";
 import { useZTheme } from "../../../../stores/useZTheme";
 import { useTranslation } from "react-i18next";
 import { IFormatData } from "../../../../types/socketType";
 import { useZGlobalVar } from "../../../../stores/useZGlobalVar";
+import { EmptyFeedBack } from "./EmptyFeedBack";
+import { useSocket } from "../../../../hooks/useSocket";
 
 export const TopGraphic = () => {
   const [isLoading] = useState(false);
-  const [chartData] = useState<IFormatData[]>([]);
+  const [chartData, setChartData] = useState<IFormatData[]>([]);
   const { theme, mode } = useZTheme();
   const { t } = useTranslation();
+  const { currentIdVM } = useZGlobalVar();
+  const { metrics } = useSocket(currentIdVM);
+
+  useEffect(() => {
+    setChartData([]);
+  }, [currentIdVM]);
+
+  useEffect(() => {
+    if (!metrics) return;
+
+    setChartData((prev) => {
+      const next = [...prev, metrics.memory];
+
+      if (next.length > 30) {
+        return next.slice(next.length - 30);
+      }
+
+      return next;
+    });
+  }, [metrics]);
 
   const COLORS = [
     theme[mode].ok,
@@ -64,7 +86,7 @@ export const TopGraphic = () => {
 
   const { currentVMName: vmName } = useZGlobalVar();
 
-  // if (!chartData.length) return <EmptyFeedBack />;
+  if (!chartData.length) return <EmptyFeedBack />;
 
   return (
     <Stack

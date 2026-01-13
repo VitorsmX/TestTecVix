@@ -36,7 +36,12 @@ export const RowVM = ({ vm, index }: IProps) => {
   const [vmIDToStart, setVmIDToStart] = React.useState<number>(0);
   const { currentVM, setCurrentVM } = useZMyVMsList();
   const { getStatus } = useStatusInfo();
-  const { getOS, getVMById, isLoading: isLoadingVm } = useVmResource();
+  const {
+    getOS,
+    getVMById,
+    isLoading: isLoadingVm,
+    updateVMStatus,
+  } = useVmResource();
 
   const idVM: number = Number(row.idVM);
   const labelId = `enhanced-table-checkbox-${index}`;
@@ -49,6 +54,13 @@ export const RowVM = ({ vm, index }: IProps) => {
   };
 
   const handleConfirVMStatusChange = async () => {
+    if (vmIDToStop) {
+      await updateVMStatus({ idVM: vmIDToStop, status: "STOPPED" });
+    }
+
+    if (vmIDToStart) {
+      await updateVMStatus({ idVM: vmIDToStart, status: "RUNNING" });
+    }
     const updatedVM = await getVMById(vmIDToStop || vmIDToStart);
     if (updatedVM) {
       setRow(updatedVM);
