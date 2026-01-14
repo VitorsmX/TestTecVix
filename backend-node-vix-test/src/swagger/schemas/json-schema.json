@@ -188,6 +188,18 @@
             "null"
           ]
         },
+        "discountRate": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "minConsumption": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
         "vM": {
           "type": "array",
           "items": {
@@ -268,6 +280,22 @@
             "null"
           ]
         },
+        "pass": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "location": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "bre_barueri",
+            "usa_miami"
+          ]
+        },
         "brandMaster": {
           "anyOf": [
             {
@@ -296,6 +324,18 @@
           "type": "string"
         },
         "profileImgUrl": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fullName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "userPhoneNumber": {
           "type": [
             "string",
             "null"
@@ -339,6 +379,25 @@
           "format": "date-time"
         },
         "deletedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "field": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "department": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "contractDate": {
           "type": [
             "string",
             "null"
