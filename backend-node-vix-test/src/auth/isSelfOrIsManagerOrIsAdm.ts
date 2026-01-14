@@ -3,23 +3,21 @@ import { CustomRequest } from "../types/custom";
 import { AppError } from "../errors/AppError";
 import { ERROR_MESSAGE } from "../constants/erroMessages";
 import { STATUS_CODE } from "../constants/statusCode";
-import { user } from "@prisma/client";
+import { IJwtPayload } from "../utils/jwt";
 
 export const isSelfOrIsManagerOrIsAdm = (
-  req: CustomRequest<user>,
+  req: CustomRequest<IJwtPayload>,
   _res: Response,
   next: NextFunction,
 ) => {
-  const user = req.user as user;
+  const user = req.user as IJwtPayload;
   const idUserFromParams = req.params.idUser;
 
   const isSelf = user.idUser === idUserFromParams;
-  const isAdmin = user.role === "admin";
-  const isManager = user.role === "manager";
+  const isManagerOrAdmin = user.role === "admin" || user.role === "manager";
 
-  if (!isSelf && !isAdmin && !isManager) {
-    throw new AppError(ERROR_MESSAGE.UNAUTHORIZED, STATUS_CODE.UNAUTHORIZED);
+  if (!isSelf && !isManagerOrAdmin) {
+    throw new AppError(ERROR_MESSAGE.FORBIDDEN, STATUS_CODE.FORBIDDEN);
   }
-
   return next();
 };

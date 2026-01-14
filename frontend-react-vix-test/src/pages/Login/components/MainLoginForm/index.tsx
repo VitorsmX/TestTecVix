@@ -9,6 +9,7 @@ import { NewOnVituaX } from "./NewOnVituaX";
 import { Contact } from "./Contact";
 import { SwithLanguages } from "../../../../components/SwithLanguages";
 import { SwithThemeMode } from "../../../../components/SwithThemeMode";
+// import { LogoBrand } from "../../../../components/LogoBrand";
 import { useLogin } from "../../../../hooks/useLogin";
 import { useZGlobalVar } from "../../../../stores/useZGlobalVar";
 import { ModalUserNotActive } from "./ModalUserNotActive";
@@ -63,7 +64,7 @@ export const MainLoginForm = () => {
           <SwithThemeMode />
         </Stack>
         {/* Logo */}
-        {/*<LogoBrand />*/}
+        {/* <LogoBrand /> */}
         <Stack
           sx={{
             width: "100%",

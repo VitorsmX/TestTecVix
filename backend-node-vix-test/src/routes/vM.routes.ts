@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { VMController } from "../controllers/VMController";
 import { API_VERSION, ROOT_PATH } from "../constants/basePathRoutes";
-import { authUser } from "../auth/authUser";
 import { isManagerOrIsAdmin } from "../auth/isManagerOrIsAdmin";
 import { isAdmin } from "../auth/isAdmin";
+import { authUser } from "../auth/authUser";
 
 const BASE_PATH = API_VERSION.V1 + ROOT_PATH.VM; // /api/v1/vm
 
@@ -30,7 +30,6 @@ vMRoutes.post(BASE_PATH, authUser, isManagerOrIsAdmin, async (req, res) => {
 });
 
 // ======== PUTs =========
-
 vMRoutes.put(
   `${BASE_PATH}/:idVM`,
   authUser,

@@ -35,6 +35,7 @@ export const FormEditVM = ({ onClose }: IProps) => {
     storageOptions,
     localizationOptions,
     updateVM,
+    updateVMStatus,
     validPassword,
     deleteVM,
     isLoadingDeleteVM,
@@ -79,7 +80,7 @@ export const FormEditVM = ({ onClose }: IProps) => {
     setVmvCpu(currentVM.vCPU);
     setVmMemory(currentVM.ram);
     setVmDisk(currentVM.disk);
-    // setVmStorageType(currentVM);
+    // setVmStorageType(null);
     // setVmLocalization(null);
     setHasBackup(currentVM.hasBackup);
     setStatus(currentVM.status);
@@ -113,7 +114,6 @@ export const FormEditVM = ({ onClose }: IProps) => {
         hasBackup: hasBackup,
         os: String(vmSO?.value) || "",
         pass: vmPassword,
-        vmLocalization: vmLocalization.value
       },
       currentVM.idVM,
     );
@@ -129,13 +129,25 @@ export const FormEditVM = ({ onClose }: IProps) => {
   };
 
   const handleStopVM = async () => {
-    setStatus("STOPPED");
-    onClose(true);
+    const result = await updateVMStatus({
+      idVM: currentVM.idVM,
+      status: "STOPPED",
+    });
+    if (result) {
+      setStatus("STOPPED");
+      onClose(true);
+    }
   };
 
   const handleStartVM = async () => {
-    setStatus("RUNNING");
-    onClose(true);
+    const result = await updateVMStatus({
+      idVM: currentVM.idVM,
+      status: "RUNNING",
+    });
+    if (result) {
+      setStatus("RUNNING");
+      onClose(true);
+    }
   };
 
   const disabledBtn =
@@ -474,6 +486,7 @@ export const FormEditVM = ({ onClose }: IProps) => {
             </TextRob16Font1S>
           </Btn>
           <Btn
+            disabled={disabledBtn}
             onClick={() => setOpenDeleteModal(true)}
             sx={{
               padding: "9px 24px",

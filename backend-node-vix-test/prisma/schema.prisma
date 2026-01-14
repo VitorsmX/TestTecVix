@@ -44,53 +44,53 @@ model brandMaster {
   contract      String?
   contractAt    DateTime? @db.DateTime(0)
   pocOpenedAt   DateTime? @db.DateTime(0)
-  manual        String?
-  termsOfUse    String?
-  privacyPolicy String?
-  vM            vM[]
-  users         user[]
+  manual                   String?
+  termsOfUse               String?
+  privacyPolicy            String?
+  discountRate             Float?
+  minConsumption           Float?
+  vM                       vM[]
+  users                    user[]
 }
 
 model vM {
-  idVM           Int           @id @default(autoincrement())
-  vmName         String?
-  vCPU           Int
-  ram            Int
-  disk           Int
-  pass           String?
-  vmLocalization ETaskLocation @default(bre_barueri)
-  hasBackup      Boolean?      @default(false)
-  idBrandMaster  Int?
-  status         EVMStatus?
-  createdAt      DateTime?     @default(now()) @db.DateTime(0)
-  updatedAt      DateTime?     @default(now()) @db.DateTime(0)
-  deletedAt      DateTime?     @db.DateTime(0)
-  os             String?
-  brandMaster    brandMaster?  @relation(fields: [idBrandMaster], references: [idBrandMaster])
+  idVM          Int            @id @default(autoincrement())
+  vmName        String?
+  vCPU          Int
+  ram           Int
+  disk          Int
+  hasBackup     Boolean?       @default(false)
+  idBrandMaster Int?
+  status        EVMStatus?
+  createdAt     DateTime?      @default(now()) @db.DateTime(0)
+  updatedAt     DateTime?      @default(now()) @db.DateTime(0)
+  deletedAt     DateTime?      @db.DateTime(0)
+  os            String?
+  pass          String?
+  location      ETaskLocation?
+  brandMaster   brandMaster?   @relation(fields: [idBrandMaster], references: [idBrandMaster])
 
   @@index([idBrandMaster], map: "vM_idBrandMaster_fkey")
 }
 
 model user {
   idUser          String    @id @default(uuid())
-  username        String
+  username        String    @unique
+  password        String
+  email           String    @unique
+  profileImgUrl   String?
   fullName        String?
   userPhoneNumber String?
-  department      String?
+  role            ERole     @default(member)
+  idBrandMaster   Int?
+  isActive        Boolean?  @default(true)
+  lastLoginDate   DateTime? @db.DateTime(0)
+  createdAt       DateTime? @default(now()) @db.DateTime(0)
+  updatedAt       DateTime? @default(now()) @db.DateTime(0)
+  deletedAt       DateTime? @db.DateTime(0)
   field           String?
-  contractDate    DateTime?
-
-  password      String
-  email         String
-  profileImgUrl String?
-
-  role          ERole     @default(member)
-  idBrandMaster Int?
-  isActive      Boolean?  @default(true)
-  lastLoginDate DateTime? @db.DateTime(0)
-  createdAt     DateTime? @default(now()) @db.DateTime(0)
-  updatedAt     DateTime? @default(now()) @db.DateTime(0)
-  deletedAt     DateTime? @db.DateTime(0)
+  department      String?
+  contractDate    DateTime? @db.DateTime(0)
 
   brandMaster brandMaster? @relation(fields: [idBrandMaster], references: [idBrandMaster])
 
@@ -103,13 +103,13 @@ enum EVMStatus {
   PAUSED
 }
 
-enum ETaskLocation {
-  bre_barueri
-  usa_miami
-}
-
 enum ERole {
   admin
   manager
   member
+}
+
+enum ETaskLocation {
+  bre_barueri
+  usa_miami
 }

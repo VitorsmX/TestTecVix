@@ -1,102 +1,244 @@
+import bcrypt from "bcryptjs";
+import { UserModel } from "../models/UserModel";
+import { BrandMasterModel } from "../models/BrandMasterModel";
+import {
+  userCreatedSchema,
+  TUserCreated,
+} from "../types/validations/User/createUser";
+import {
+  userUpdatedSchema,
+  TUserUpdated,
+} from "../types/validations/User/updateUser";
+import {
+  loginUserSchema,
+  TLoginUser,
+} from "../types/validations/User/loginUser";
+import { querySchema } from "../types/validations/Queries/queryListAll";
 import { AppError } from "../errors/AppError";
 import { ERROR_MESSAGE } from "../constants/erroMessages";
 import { STATUS_CODE } from "../constants/statusCode";
-import bcrypt from "bcryptjs";
-import { TUserCreated } from "../types/validations/User/createUser";
 import { genToken } from "../utils/jwt";
-import { UserModel } from "../models/UserModel";
-import { userUpdatedSchema } from "../types/validations/User/updateUser";
+import { user } from "@prisma/client";
 
 export class UserService {
-  constructor() {}
-
   private userModel = new UserModel();
 
-  async getUserById(idUser: string) {
-    const user = await this.userModel.findById(idUser);
-    if (!user) {
-      throw new AppError(ERROR_MESSAGE.UNAUTHORIZED, STATUS_CODE.UNAUTHORIZED);
+  async getById(idUser: string, user?: user) {
+    const fetchedUser = await this.userModel.getById(idUser);
+    if (!fetchedUser) {
+      throw new AppError(ERROR_MESSAGE.USER_NOT_FOUND, STATUS_CODE.NOT_FOUND);
     }
-    return user;
+
+    if (
+      user?.idBrandMaster &&
+      fetchedUser.idBrandMaster !== user.idBrandMaster
+    ) {
+      throw new AppError(ERROR_MESSAGE.FORBIDDEN, STATUS_CODE.FORBIDDEN);
+    }
+
+    return fetchedUser;
   }
 
-  async getNewToken(idUser: string) {
-    const user = await this.userModel.findById(idUser);
+  async listAll(query: unknown, user?: user) {
+    const validQuery = querySchema.parse(query);
 
-    if (!user) {
-      throw new AppError(ERROR_MESSAGE.UNAUTHORIZED, STATUS_CODE.UNAUTHORIZED);
+    if (user?.idBrandMaster) {
+      validQuery.idBrandMaster = user.idBrandMaster;
     }
 
-    if (!user.isActive) {
-      throw new AppError(ERROR_MESSAGE.UNAUTHORIZED, STATUS_CODE.FORBIDDEN);
-    }
-
-    const token = genToken({ id: user.idUser, role: user.role });
-
-    return { token };
+    return this.userModel.listAll(validQuery);
   }
 
-  async login(email: string, password: string) {
-    const user = await this.userModel.findByEmail(email);
-
-    if (!user) {
-      throw new AppError(ERROR_MESSAGE.UNAUTHORIZED, STATUS_CODE.UNAUTHORIZED);
+  async createUser(data: TUserCreated, user?: user) {
+    if (user?.role === "member") {
+      throw new AppError(ERROR_MESSAGE.FORBIDDEN, STATUS_CODE.FORBIDDEN);
     }
 
-    const match = await bcrypt.compare(password, user.password);
+    const validData = userCreatedSchema.parse(data);
 
-    if (!match) {
-      throw new AppError(ERROR_MESSAGE.UNAUTHORIZED, STATUS_CODE.UNAUTHORIZED);
+    if (user?.idBrandMaster) {
+      validData.idBrandMaster = user.idBrandMaster;
     }
 
-    const token = genToken({ id: user.idUser, role: user.role });
-
-    return {
-      token,
-      user: user,
-    };
-  }
-
-  async register(data: TUserCreated) {
-    const exists = await this.userModel.findByEmail(data.email);
-
-    if (exists) {
+    const existingEmail = await this.userModel.getByEmail(validData.email);
+    if (existingEmail) {
       throw new AppError(
-        ERROR_MESSAGE.USER_ALREADY_EXISTS,
+        ERROR_MESSAGE.EMAIL_ALREADY_EXISTS,
         STATUS_CODE.CONFLICT,
       );
     }
 
-    const hashed = await bcrypt.hash(data.password, 10);
-
-    return await this.userModel.createUser({
-      ...data,
-      isActive: true,
-      password: hashed,
-    });
-  }
-
-  async updateUser(idUser: string, data: unknown) {
-    const validateDataSchema = userUpdatedSchema.parse(data);
-    const oldUser = await this.getUserById(idUser);
-
-    if (!oldUser) {
-      throw new AppError(ERROR_MESSAGE.NOT_FOUND, STATUS_CODE.NOT_FOUND);
-    }
-
-    const updatedVM = await this.userModel.updateUser(
-      idUser,
-      validateDataSchema,
+    const existingUsername = await this.userModel.getByUsername(
+      validData.username,
     );
-    return updatedVM;
+    if (existingUsername) {
+      throw new AppError(
+        ERROR_MESSAGE.USERNAME_ALREADY_EXISTS,
+        STATUS_CODE.CONFLICT,
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(validData.password, 10);
+
+    const newUser = await this.userModel.createUser({
+      ...validData,
+      password: hashedPassword,
+    });
+
+    return newUser;
   }
 
-  async deleteUser(idUser: string) {
-    const oldUser = await this.getUserById(idUser);
-    if (!oldUser) {
-      throw new AppError(ERROR_MESSAGE.NOT_FOUND, STATUS_CODE.NOT_FOUND);
+  async updateUser(idUser: string, data: TUserUpdated, user?: user) {
+    const existingUser = await this.userModel.getById(idUser);
+    if (!existingUser) {
+      throw new AppError(ERROR_MESSAGE.USER_NOT_FOUND, STATUS_CODE.NOT_FOUND);
     }
-    const deletedVm = await this.userModel.deleteUser(idUser);
-    return deletedVm;
+
+    const isSelf = user?.idUser === idUser;
+
+    if (user?.role === "member" && !isSelf) {
+      throw new AppError(ERROR_MESSAGE.FORBIDDEN, STATUS_CODE.FORBIDDEN);
+    }
+
+    const validData = userUpdatedSchema.parse(data);
+    const updateData: TUserUpdated & { password?: string } = { ...validData };
+
+    if (user && user.role !== "admin") {
+      delete updateData.role;
+      delete updateData.idBrandMaster;
+      delete updateData.isActive;
+    }
+
+    if (user?.role === "admin" && user.idBrandMaster) {
+      delete updateData.idBrandMaster;
+    }
+
+    if (
+      user?.idBrandMaster &&
+      existingUser.idBrandMaster !== user.idBrandMaster
+    ) {
+      throw new AppError(ERROR_MESSAGE.FORBIDDEN, STATUS_CODE.FORBIDDEN);
+    }
+
+    if (validData.email && validData.email !== existingUser.email) {
+      const existingEmail = await this.userModel.getByEmail(validData.email);
+      if (existingEmail) {
+        throw new AppError(
+          ERROR_MESSAGE.EMAIL_ALREADY_EXISTS,
+          STATUS_CODE.CONFLICT,
+        );
+      }
+    }
+
+    if (validData.username && validData.username !== existingUser.username) {
+      const existingUsername = await this.userModel.getByUsername(
+        validData.username,
+      );
+      if (existingUsername) {
+        throw new AppError(
+          ERROR_MESSAGE.USERNAME_ALREADY_EXISTS,
+          STATUS_CODE.CONFLICT,
+        );
+      }
+    }
+
+    if (validData.password) {
+      updateData.password = await bcrypt.hash(validData.password, 10);
+    }
+
+    return this.userModel.updateUser(idUser, updateData);
+  }
+
+  async deleteUser(idUser: string, user?: user) {
+    if (user?.role === "member" || user?.role === "manager") {
+      throw new AppError(ERROR_MESSAGE.FORBIDDEN, STATUS_CODE.FORBIDDEN);
+    }
+
+    const existingUser = await this.userModel.getById(idUser);
+    if (!existingUser) {
+      throw new AppError(ERROR_MESSAGE.USER_NOT_FOUND, STATUS_CODE.NOT_FOUND);
+    }
+
+    if (
+      user?.idBrandMaster &&
+      existingUser.idBrandMaster !== user.idBrandMaster
+    ) {
+      throw new AppError(ERROR_MESSAGE.FORBIDDEN, STATUS_CODE.FORBIDDEN);
+    }
+
+    return this.userModel.deleteUser(idUser);
+  }
+
+  async login(data: TLoginUser) {
+    const validData = loginUserSchema.parse(data);
+
+    let user = null;
+
+    if (validData.email) {
+      user = await this.userModel.getByEmail(validData.email);
+    }
+
+    if (!user && validData.username) {
+      user = await this.userModel.getByUsername(validData.username);
+    }
+
+    if (!user) {
+      throw new AppError(
+        ERROR_MESSAGE.INVALID_EMAIL_OR_PASSWORD,
+        STATUS_CODE.UNAUTHORIZED,
+      );
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      validData.password,
+      user.password,
+    );
+
+    if (!isPasswordValid) {
+      throw new AppError(
+        ERROR_MESSAGE.INVALID_EMAIL_OR_PASSWORD,
+        STATUS_CODE.UNAUTHORIZED,
+      );
+    }
+
+    await this.userModel.updateLastLogin(user.idUser);
+
+    const token = genToken({
+      idUser: user.idUser,
+      email: user.email,
+      role: user.role,
+      idBrandMaster: user.idBrandMaster,
+    });
+
+    let brandMaster = null;
+    if (user.idBrandMaster) {
+      const brandMasterModel = new BrandMasterModel();
+      brandMaster = await brandMasterModel.getById(user.idBrandMaster);
+    }
+
+    return {
+      token,
+      user: {
+        idUser: user.idUser,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        userPhoneNumber: user.userPhoneNumber,
+        profileImgUrl: user.profileImgUrl,
+        role: user.role,
+        idBrandMaster: user.idBrandMaster,
+        isActive: user.isActive,
+        lastLoginDate: user.lastLoginDate,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+      brandMaster: brandMaster
+        ? {
+            emailContact: brandMaster.emailContact,
+            smsContact: brandMaster.smsContact,
+            timezone: brandMaster.timezone,
+          }
+        : null,
+    };
   }
 }

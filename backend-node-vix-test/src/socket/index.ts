@@ -1,12 +1,10 @@
 import http from "http";
+// import WebSocket from "ws";
 import { Server } from "socket.io";
-import { generateMetricPoint } from "./metricsMock";
 
 let io: Server;
 
 const socketSetup = (server: http.Server) => {
-  console.log("🔥 socketSetup foi chamado");
-
   io = new Server(server, {
     cors: {
       origin: "*",
@@ -14,34 +12,26 @@ const socketSetup = (server: http.Server) => {
     },
   });
 
-  io.on("connection", (socket) => {
-    let interval: ReturnType<typeof setInterval> | null = null;
-    let currentVmId: number | null = null;
+  io.on("connection", async (socket) => {
+    try {
+      // const { } = socket.handshake.auth;
+      console.log(socket.handshake.auth);
 
-    socket.on("watch-vm", (vmId: number) => {
-      currentVmId = vmId;
-
-      if (interval) clearInterval(interval);
-
-      interval = setInterval(() => {
-        if (!currentVmId) return;
-
-        const cpu = generateMetricPoint(currentVmId, "cpu");
-        const memory = generateMetricPoint(currentVmId, "memory");
-
-        socket.emit("vm-metrics", { cpu, memory });
-      }, 2000);
-    });
-
-    socket.on("disconnect", (reason) => {
-      if (interval) clearInterval(interval);
-      console.log("❌ Socket desconectado:", reason);
-    });
+      socket.on("disconnect", async (reason) => {
+        socket.disconnect(true);
+        console.log("disconnect", reason);
+      });
+    } catch (error) {
+      socket.disconnect();
+      console.error(error, "XXX From Socket setup");
+    }
   });
 };
 
 const getIO = () => {
-  if (!io) throw new Error("Socket.io is not initialized!");
+  if (!io) {
+    throw new Error("Socket.io is not initialized!");
+  }
   return io;
 };
 

@@ -16,7 +16,7 @@ import { ModalDeleteVMsFromMSP } from "./ModalDeleteVMsFromMSP";
 import { useBrandMasterResources } from "../../hooks/useBrandMasterResources";
 import { AbsoluteBackDrop } from "../../components/AbsoluteBackDrop";
 import { useVmResource } from "../../hooks/useVmResource";
-import { MspForm } from "./MspForm";
+import { MspFormModal } from "./MspFormModal";
 
 export const MSPRegisterPage = () => {
   const { theme, mode } = useZTheme();
@@ -38,6 +38,7 @@ export const MSPRegisterPage = () => {
   const { isLoading } = useBrandMasterResources();
   const { isLoadingDeleteVM, deleteVM } = useVmResource();
   const [openModalUserNotCreated, setOpenModalUserNotCreated] = useState(false);
+  const [openFormModal, setOpenFormModal] = useState(false);
 
   const resetAllStepStates = () => {
     setIsEditing([]);
@@ -57,6 +58,24 @@ export const MSPRegisterPage = () => {
   const handleAfterDeleteMSP = async () => {
     await Promise.all(vmsToBeDeleted.map((vm) => deleteVM(vm.idVM)));
     handleCancelAfterDeleteMSP();
+  };
+
+  const handleOpenNewMspModal = () => {
+    resetAllStepStates();
+    setOpenFormModal(true);
+  };
+
+  const handleCloseFormModal = () => {
+    setOpenFormModal(false);
+    resetAllStepStates();
+  };
+
+  const handleFormSuccess = (type: "createdMsp" | "editedMsp") => {
+    setModalOpen(type);
+  };
+
+  const handleUserNotCreated = () => {
+    setOpenModalUserNotCreated(true);
   };
 
   useEffect(() => {
@@ -157,10 +176,9 @@ export const MSPRegisterPage = () => {
                 >
                   {t("mspRegister.tableTitle")}
                 </TextRob16Font1S>
-                <MspTableFilters />
+                <MspTableFilters onNewMsp={handleOpenNewMspModal} />
               </Box>
-              <MspForm />
-              <MspTable />
+              <MspTable onEditMsp={() => setOpenFormModal(true)} />
             </Stack>
           </Stack>
         }
@@ -212,6 +230,12 @@ export const MSPRegisterPage = () => {
           vms={vmsToBeDeleted}
         />
       )}
+      <MspFormModal
+        open={openFormModal}
+        onClose={handleCloseFormModal}
+        onSuccess={handleFormSuccess}
+        onUserNotCreated={handleUserNotCreated}
+      />
     </ScreenFullPage>
   );
 };

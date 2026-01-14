@@ -1,17 +1,13 @@
 import jwt from "jsonwebtoken";
 
-const secret = process.env.SIGN_HASH as string;
+const secret = process.env.SIGN_HASH;
 
-export interface IPayload {
-  id: string;
-  role: string;
-}
+type JwtPayload = Record<string, unknown>;
 
-export const jwtVerifySign = (token: string): IPayload | null => {
+export const jwtVerifySign = (token: string): JwtPayload | null => {
   try {
     if (!token) return null;
-
-    const data = jwt.verify(token, secret) as IPayload;
+    const data = jwt.verify(token, secret as string) as JwtPayload;
     return data;
   } catch {
     return null;

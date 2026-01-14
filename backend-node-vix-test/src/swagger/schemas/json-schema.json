@@ -188,6 +188,18 @@
             "null"
           ]
         },
+        "discountRate": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "minConsumption": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
         "vM": {
           "type": "array",
           "items": {
@@ -222,20 +234,6 @@
         },
         "disk": {
           "type": "integer"
-        },
-        "pass": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "vmLocalization": {
-          "type": "string",
-          "default": "bre_barueri",
-          "enum": [
-            "bre_barueri",
-            "usa_miami"
-          ]
         },
         "hasBackup": {
           "type": [
@@ -282,6 +280,22 @@
             "null"
           ]
         },
+        "pass": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "location": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "bre_barueri",
+            "usa_miami"
+          ]
+        },
         "brandMaster": {
           "anyOf": [
             {
@@ -303,37 +317,6 @@
         "username": {
           "type": "string"
         },
-        "fullName": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "userPhoneNumber": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "department": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "field": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "contractDate": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "format": "date-time"
-        },
         "password": {
           "type": "string"
         },
@@ -341,6 +324,18 @@
           "type": "string"
         },
         "profileImgUrl": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fullName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "userPhoneNumber": {
           "type": [
             "string",
             "null"
@@ -384,6 +379,25 @@
           "format": "date-time"
         },
         "deletedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "field": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "department": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "contractDate": {
           "type": [
             "string",
             "null"
